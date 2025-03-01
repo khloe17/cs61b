@@ -86,6 +86,14 @@ public class Model {
      * */
     public boolean emptySpaceExists() {
         // TODO: Task 1. Fill in this function.
+        // loop through all positions on the board
+        for (int x = 0; x < board.size(); x++) {
+            for (int y = 0; y < board.size(); y++) {
+                if (board.tile(x, y) == null) {
+                    return true;
+                }
+            }
+        }
         return false;
     }
 
@@ -96,6 +104,15 @@ public class Model {
      */
     public boolean maxTileExists() {
         // TODO: Task 2. Fill in this function.
+        for (int x = 0; x < board.size(); x++) {
+            for (int y = 0; y < board.size(); y++) {
+                // board.tile(x, y) returns a Tile object if there is a tile at position (x, y)
+                Tile tile = board.tile(x, y);
+                if (tile != null && tile.value() == MAX_PIECE) {
+                    return true;
+                }
+            }
+        }
         return false;
     }
 
@@ -107,6 +124,32 @@ public class Model {
      */
     public boolean atLeastOneMoveExists() {
         // TODO: Task 3. Fill in this function.
+        // leverage previous func to check empty spaces
+        if (emptySpaceExists()) {
+            return true;
+        }
+        int size = board.size();
+
+        // two adjacent tiles with the same value
+        for (int x = 0; x < size; x++) {
+            for (int y = 0; y < size; y++) {
+                if (tile(x, y) == null) {
+                    continue; // skip empty tiles
+                }
+
+                if (x + 1 < size) {
+                    if (board.tile(x, y).value() == board.tile(x + 1, y).value()) {
+                        return true;
+                    }
+                }
+
+                if (y + 1 < size) {
+                    if (board.tile(x, y).value() == board.tile(x, y + 1).value()) {
+                        return true;
+                    }
+                }
+            }
+        }
         return false;
     }
 
@@ -128,8 +171,31 @@ public class Model {
         Tile currTile = board.tile(x, y);
         int myValue = currTile.value();
         int targetY = y;
-
+        int size = board.size();
         // TODO: Tasks 5, 6, and 10. Fill in this function.
+        if (currTile == null) {
+            return; // no tile to move
+        }
+        while ((targetY + 1) < size && board.tile(x, targetY + 1) == null) {
+            targetY += 1; // update the coordinate when the top one is empty tile
+        }
+
+        if (targetY + 1 < size) {
+            Tile newTile = board.tile(x, targetY + 1);
+            if (newTile != null && !newTile.wasMerged() && newTile.value() == myValue) {
+                board.move(x, targetY + 1, currTile);
+                // board.move(x, targetY + 1, currTile); automatically merges the tile.
+                // The merged tile’s value is now stored at board.tile(x, targetY + 1).
+                // So we simply retrieve its value and add it to score.
+                score += board.tile(x, targetY + 1).value();
+                return;
+//                currTile.wasMerged() = true;
+            }
+        }
+        // move the tile to its final position
+        if (targetY != y) {
+            board.move(x, targetY, currTile);
+        }
     }
 
     /** Handles the movements of the tilt in column x of board B
@@ -139,10 +205,25 @@ public class Model {
      * */
     public void tiltColumn(int x) {
         // TODO: Task 7. Fill in this function.
+        int size = board.size();
+        for (int y = size - 2; y >= 0; y--) {
+            Tile currPos = board.tile(x, y);
+            if (currPos != null && !currPos.wasMerged()) {
+                moveTileUpAsFarAsPossible(x, y);
+            }
+
+        }
     }
 
     public void tilt(Side side) {
         // TODO: Tasks 8 and 9. Fill in this function.
+        board.setViewingPerspective(side);
+
+        for (int x = 0; x < board.size(); x++) {
+            tiltColumn(x);
+        }
+
+        board.setViewingPerspective(Side.NORTH);
     }
 
     /** Tilts every column of the board toward SIDE.
