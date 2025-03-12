@@ -44,13 +44,16 @@ public class Puzzle {
         } catch (FileNotFoundException e) {
             throw new RuntimeException(e);
         }
+
         while (s.hasNextLine()) {
             if (s.hasNextInt()) {
                 return s.nextInt();
             }
             s.nextLine();
         }
+
         throw new RuntimeException("Could not find answer in " + file);
+
     }
 
     private static boolean isCorrect(int answer) {
@@ -65,6 +68,7 @@ public class Puzzle {
                 Hint: Use an exception breakpoint.""");
         while (r.nextInt(100) != 10) {
             guessThis += r.nextInt();
+
             s = LOTS_OF_STRINGS[r.nextInt(LOTS_OF_STRINGS.length + 1)];
         }
     }
